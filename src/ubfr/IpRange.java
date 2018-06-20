@@ -1,7 +1,5 @@
 package ubfr;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -24,11 +22,9 @@ public class IpRange {
 	}
 	
 	public IpRange(IpAddress lowerLimit, IpAddress upperLimit) {
-		try {
-			lowerLimit.isGreater(upperLimit);
-		} catch (InvalidIpAddressException e) {
+		if (lowerLimit.isGreater(upperLimit)) {
 			throw new InvalidRangeException();
-		}
+		};
 		this.lowerLimit = lowerLimit;
 		this.upperLimit = upperLimit;
 	}
