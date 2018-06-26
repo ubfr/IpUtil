@@ -1,5 +1,6 @@
 package ubfr;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -15,27 +16,40 @@ public class IpRange {
 
 	public IpAddress upperLimit;
 	public IpAddress lowerLimit;
-
-	public static void main(String[] args) {
-		IpRange range = IpRange.parseIpRange("132.230.25.10");
-		System.out.println(range.toCidr());
-	}
+	public Integer cidrSuffix = null;
 	
 	public IpRange(IpAddress lowerLimit, IpAddress upperLimit) {
 		if (lowerLimit.isGreater(upperLimit)) {
 			throw new InvalidRangeException();
-		};
+		}
+		
 		this.lowerLimit = lowerLimit;
 		this.upperLimit = upperLimit;
 	}
 	
+	public IpRange(IpAddress lowerLimit, IpAddress upperLimit, int cidrSuffix) {
+		if (lowerLimit.isGreater(upperLimit)) {
+			throw new InvalidRangeException();
+		}
+		
+		this.lowerLimit = lowerLimit;
+		this.upperLimit = upperLimit;
+		this.cidrSuffix = cidrSuffix;
+	}
+
 	public static IpRange parseIpRange(String s) throws InvalidRangeException {
 		// remove all withspace characters
 		s = StringUtils.removeAll(s, "\\s");
 
-		String[] parts = decodeCidrNotation(s);
+		// handle cidr notation
+		String[] parts = s.split("/");
+		if (parts.length == 2) {
+			IpAddress ipAddr = IpAddress.parseIpAddress(parts[0]);
+			short cidrSuffix = ipAddr.parseCidrSuffix(parts[1]);
+			return new IpRange(ipAddr.getLowerLimit(cidrSuffix), ipAddr.getUpperLimit(cidrSuffix));
+		}
 
-		// 132.230.250.234 - 132.230.250.255
+		// handle formats like: 132.230.250.234 - 132.230.250.255
 		String[] limits = s.split("-");
 		if (limits.length == 2) {
 			try {
@@ -54,25 +68,6 @@ public class IpRange {
 		} catch (InvalidBlockException e) {
 			throw new InvalidRangeException();
 		}
-	}
-
-	private static String[] decodeCidrNotation(String s) {
-		String[] parts = s.split("/");
-
-		String ipAddr = "";
-		String cidrSuffix = "";
-
-		switch (parts.length) {
-		case 1:
-			ipAddr = parts[0];
-			break;
-		case 2:
-			ipAddr = parts[0];
-			cidrSuffix = parts[1];
-			break;
-		}
-
-		return new String[] { ipAddr, cidrSuffix };
 	}
 
 	public static String[] getBlocks(String ipAddr) throws InvalidBlockException, InvalidRangeException {
@@ -285,7 +280,6 @@ public class IpRange {
 		} catch (InvalidIpAddressException e) {
 			throw new InvalidRangeException();
 		}
-
 	}
 
 	public String getString() throws InvalidIpAddressException {
@@ -305,40 +299,89 @@ public class IpRange {
 	}
 
 	public List<String> toCidr() {
-		Map<Long, long[]> cidrRanges = getCidr(lowerLimit, this.upperLimit);
-
-		// String[] result = new String[cidrRanges.size()];
-
+		
 		List<String> result = new LinkedList<String>();
 
-		for (long[] cidrRange : cidrRanges.values()) {
-			try {
-				result.add(new Ipv4Address(cidrRange[0]).toString() + "/" + (32 - cidrRange[2] + 1));
-			} catch (InvalidIpAddressException e) {
-
+		if (upperLimit instanceof Ipv4Address) {
+			Map<Long, IpRange> cidrRanges = getCidr(lowerLimit, this.upperLimit);
+			
+			for (IpRange cidrRange : cidrRanges.values()) {
+				try {
+					result.add(cidrRange.getLowerLimit().toString() + "/" + (cidrRange.cidrSuffix + 1));
+				} catch (InvalidIpAddressException e) {
+					
+				}
 			}
 		}
+		
+		if (upperLimit instanceof Ipv6Address) {
+			result.add(upperLimit.toString() + "/128");
+		}
+		
 
 		return result;
 	}
 
-	private static Map<Long, long[]> getCidr(IpAddress lowerAddr, IpAddress upperAddr) {
-		long lower = ((Ipv4Address) lowerAddr).longValue(); 
-		long upper = ((Ipv4Address) upperAddr).longValue(); 
-
-		return getCidr(31l, lower, upper, new TreeMap<Long, long[]>());
+	private static Map<Long, IpRange> getCidr(IpAddress lowerAddr, IpAddress upperAddr) {
+		return getCidr(0, (Ipv4Address) lowerAddr, (Ipv4Address) upperAddr, new TreeMap<Long, IpRange>());
 	}
+	
+//	private static Map<Long, long[]> getIpv6Cidr(IpAddress lowerAddr, IpAddress upperAddr) {
+//		Ipv6Address lower = ((Ipv6Address) lowerAddr);
+//		Ipv6Address upper = ((Ipv6Address) upperAddr);
+//		return getCidrIpv6(0, lower, upper, new TreeMap<Long, long[]>());
+//	}
 
+	private static Map<Long, IpRange> getCidr(int n, Ipv4Address lower, Ipv4Address upper, Map<Long, IpRange> allRanges) {
+		if (lower.isGreater(upper)) {
+			return allRanges;
+		}
+		
+		//long highBlockUpper = (lower | (~(-1 << n)));
+		IpAddress highBlockUpper = (lower.getUpperLimit(n));
+		//long highBlockLower = (highBlockUpper & (-1 << n - 1));
+		IpAddress highBlockLower = (highBlockUpper.getLowerLimit(n+1));
+		//long lowBlockLower = (lower & (-1 << n));
+		IpAddress lowBlockLower = (lower.getLowerLimit(n));
+		//long lowBlockUpper = (lowBlockLower | (~(-1 << n - 1)));
+		IpAddress lowBlockUpper = (lowBlockLower.getUpperLimit(n+1));
+		
+		
+		Ipv4Address resultUpperLimit = null;
+		Ipv4Address resultLowerLimit = null;
+		if (upper.isGreaterEqual(highBlockUpper) && highBlockLower.isGreaterEqual(lower)) {
+			resultLowerLimit = (Ipv4Address) highBlockLower;
+			resultUpperLimit = (Ipv4Address) highBlockUpper;
+		}
+
+		if (upper.isGreaterEqual(lowBlockUpper) && lowBlockLower.isGreaterEqual(lower)) {
+			resultLowerLimit = (Ipv4Address)lowBlockLower;
+			resultUpperLimit = (Ipv4Address)lowBlockUpper;
+		}
+
+		if (resultUpperLimit == null & resultLowerLimit == null) {
+			allRanges = IpRange.getCidr(n+1, lower, upper, allRanges);
+		} else {
+			allRanges = IpRange.getCidr(n, lower, resultLowerLimit.prev(), allRanges);
+			allRanges = IpRange.getCidr(n, resultUpperLimit.next(), upper, allRanges);
+			IpRange cidrRange = new IpRange(resultLowerLimit, resultUpperLimit, n);
+			allRanges.put(resultUpperLimit.longValue(), cidrRange);
+		}
+
+		return allRanges;
+	}
+	
+	
 	private static Map<Long, long[]> getCidr(long n, long lower, long upper, Map<Long, long[]> allRanges) {
 		if (lower > upper) {
 			return allRanges;
 		}
 
-		long highBlockUpper = (lower | (~(-1 << n )));
-		long highBlockLower = (highBlockUpper & (-1 << n-1));
+		long highBlockUpper = (lower | (~(-1 << n)));
+		long highBlockLower = (highBlockUpper & (-1 << n - 1));
 
 		long lowBlockLower = (lower & (-1 << n));
-		long lowBlockUpper = (lowBlockLower | (~(-1 << n-1)));
+		long lowBlockUpper = (lowBlockLower | (~(-1 << n - 1)));
 
 		long[] result = new long[3];
 		if (upper >= highBlockUpper && highBlockLower >= lower) {
@@ -363,4 +406,5 @@ public class IpRange {
 
 		return allRanges;
 	}
+
 }

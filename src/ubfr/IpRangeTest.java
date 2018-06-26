@@ -24,7 +24,6 @@ public class IpRangeTest {
 
 		// assertEquals("132.230.25.15",
 		// IpRange.parseString("132.230.25.*").getStartIp());
-
 	}
 
 	@Test
@@ -81,28 +80,11 @@ public class IpRangeTest {
 					new IpRange(IpAddress.parseIpAddress(test.split("\\s+")[1]),
 							IpAddress.parseIpAddress(test.split("\\s+")[2])).getString(),
 					IpRange.getRange(test.split("\\s+")[0]).getString());
-
 		}
 
 		assertTrue(EqualsBuilder.reflectionEquals(IpAddress.parseIpAddress("132.230.25.0"),
 				IpRange.getRange("132.230.25.*").lowerLimit));
 
-//		assertTrue(EqualsBuilder.reflectionEquals(
-//				new IpRange(IpAddress.parseIpAddress("132.230.25.10"), IpAddress.parseIpAddress("132.230.25.15")),
-//				IpRange.getRange("")));
-//		assertTrue(EqualsBuilder.reflectionEquals(
-//				new IpRange(IpAddress.parseIpAddress(""), IpAddress.parseIpAddress("132.230.255.255")),
-//				IpRange.getRange("")));
-//		assertTrue(EqualsBuilder.reflectionEquals(
-//				new IpRange(IpAddress.parseIpAddress(""), IpAddress.parseIpAddress("132.230.255.255")),
-//				IpRange.getRange("")));
-//		assertTrue(EqualsBuilder.reflectionEquals(
-//				new IpRange(IpAddress.parseIpAddress(""), IpAddress.parseIpAddress("132.230.55.255")),
-//				IpRange.getRange("")));
-//		assertTrue(EqualsBuilder.reflectionEquals(
-//				new IpRange(IpAddress.parseIpAddress(""), IpAddress.parseIpAddress("")),
-//				IpRange.getRange("")));
-//
 		assertThrows(InvalidBlockException.class, () -> {
 			IpRange.getRange("132.230.23-55");
 		});
@@ -112,6 +94,12 @@ public class IpRangeTest {
 		assertThrows(InvalidBlockException.class, () -> {
 			IpRange.getRange("132.230.*.");
 		});
+		
+		assertTrue(EqualsBuilder.reflectionEquals(IpAddress.parseIpAddress("2001:4860:4860:0:0:0:0:88ff"),
+				IpRange.parseIpRange("2001:4860:4860:0:0:0:0:88ff/128").getUpperLimit()));
+		
+		
+		
 	}
 
 	@Test
@@ -132,6 +120,11 @@ public class IpRangeTest {
 				IpRange.parseIpRange("132.230.*").getUpperLimit()));
 		assertTrue(EqualsBuilder.reflectionEquals(IpAddress.parseIpAddress("132.230.10.29"),
 				IpRange.parseIpRange("132.230.10.23-29").getUpperLimit()));
+		
+		// ipv6
+		assertTrue(EqualsBuilder.reflectionEquals(IpAddress.parseIpAddress("2001:4860:4860:0:0:0:0:88ff"),
+				IpRange.parseIpRange("2001:4860:4860:0:0:0:0:88ff/128").getUpperLimit()));
+		
 	}
 
 	@Test
@@ -191,6 +184,49 @@ public class IpRangeTest {
 		for (String test : positiveTests) {
 			assertArrayEquals(getCidr(test), (IpRange.parseIpRange(getRange(test))).toCidr().toArray());
 		}
+		
+		// first string is the input cidr
+		// second string ist the proccessed cidr
+		positiveTests = new String[] { 
+				"132.230.25.0/32 132.230.25.0/32",
+				"132.230.25.11/32 132.230.25.11/32",
+				"132.230.25.0/31 132.230.25.0/31",
+				"132.230.25.1/31 132.230.25.0/31",
+				"132.230.25.17/31 132.230.25.16/31",
+				"132.230.25.16/31 132.230.25.16/31",
+				"132.230.25.0/30 132.230.25.0/30",
+				"132.230.25.3/30 132.230.25.0/30",
+				"132.230.25.5/30 132.230.25.4/30",
+				"132.230.25.4/30 132.230.25.4/30",
+				"132.230.123.122/17 132.230.0.0/17",
+				"132.230.128.252/17 132.230.128.0/17",
+				"132.230.25.0/24 132.230.25.0/24",
+				"132.230.25.128/25 132.230.25.128/25",
+				"132.230.25.127/25 132.230.25.0/25"
+		};
+
+		for (String test : positiveTests) {
+			assertArrayEquals(getCidr(test), (IpRange.parseIpRange(getRange(test))).toCidr().toArray());
+		}
+
+		assertThrows(NumberFormatException.class, () -> {
+			IpRange.parseIpRange("132.230.25.0/aa").getString();
+		});
+		
+		assertThrows(NumberFormatException.class, () -> {
+			IpRange.parseIpRange("132.230.25.0/66").getString();
+		});
+		
+		assertThrows(NumberFormatException.class, () -> {
+			IpRange.parseIpRange("132.230.25.*/66").getString();
+		});
+		
+		assertThrows(NumberFormatException.class, () -> {
+			IpRange.parseIpRange("132.230.25.2/*").getString();
+		});
+		
+		
+		assertArrayEquals(new String[] {"2001:4860:4860:0000:0000:0000:0000:88ff/128"}, IpRange.parseIpRange("2001:4860:4860:0:0:0:0:88ff/128").toCidr().toArray());
 	}
 
 	private String[] getCidr(String s) {

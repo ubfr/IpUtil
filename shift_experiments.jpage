@@ -19,15 +19,16 @@ System.out.println(Integer.toBinaryString(Integer.parseInt("FFFF",16)));
 		
 System.out.println(Integer.toBinaryString(132));
 System.out.println(Integer.valueOf("10000100000",2));
-
-System.out.println(Long.toBinaryString(42541956123769884636017138956568135816));
+System.out.println(Long.toBinaryString(42541956123769884636017138956568135816));
 
 2001:4860:4860:0000:0000:0000:0000:8888
 42541956123769884636017138956568135816
 
-0010000000000001010010000110000001001000011000000000000000000000
+
+
+00100000000000010100100001100000 01001000011000000000000000000000
 2306204062558715904
-0000000000000000000000000000000000000000000000001000100010001000
+00000000000000000000000000000000 00000000000000001000100010001000
 34952
 
 long highBits = 2306204062558715904l;
@@ -136,12 +137,15 @@ System.out.println(Math.log(2147483648l)/Math.log(2));
 
 System.out.println( Long.toBinaryString(~(-1 << 1) << 4 ));
 
-System.out.println( Long.toBinaryString(~(-1 << 1)));
-System.out.println( Long.toBinaryString((1 << 4)));
+
+int cidr=0;System.out.println( Long.toBinaryString((-1 << cidr)));
+System.out.println( Long.toBinaryString((~(-1 << cidr))));
+System.out.println("---------------------------------------------------------------------------");
+
 
 System.out.println( Long.toBinaryString(2229672392l));
 
-long upper= 2229672392l;
+Long upper= 2229672392l;
 long lower = 2229672202l;
 long n=2l;
 long highBlockUpper = (upper | (~(-1 << n)));
@@ -158,4 +162,4 @@ System.out.println( Long.toBinaryString(highBlockLower));
 
 System.out.println( Long.toBinaryString(lowBlockUpper));
 System.out.println( Long.toBinaryString(lowBlockLower));
-System.out.println("-------------------");
+System.out.println("--------------------------------");

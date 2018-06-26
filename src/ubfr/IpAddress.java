@@ -4,6 +4,8 @@ import ubfr.Exception.InvalidIpAddressException;
 
 public class IpAddress {
 	
+	protected short max_cidr_suffix;
+	
 	public final IpAddress ipAddress;
 	
 	public IpAddress() {
@@ -38,11 +40,19 @@ public class IpAddress {
 		}
 
 		if (isPossilbeIpv6Addr) {
-			return new Ipv6Address(0l,0l);
+			return Ipv6Address.parseIpAddress(str);
 		}
 		
 		throw new InvalidIpAddressException();
 	}	
+	
+	public IpAddress getUpperLimit(int cidrSuffix) {
+		return this.getUpperLimit(cidrSuffix);
+	}
+	
+	public IpAddress getLowerLimit(int cidrSuffix) {
+		return this.getLowerLimit(cidrSuffix);
+	}
 	
 	public String toString() {
 		return ipAddress.toString();
@@ -83,4 +93,13 @@ public class IpAddress {
 	public IpAddress next() {
 		return this.next();
 	}
+	
+	public IpAddress prev() {
+		return this.next();
+	}
+	
+	public short parseCidrSuffix(String s) {
+		return parseCidrSuffix(s);
+	}
 }
+
