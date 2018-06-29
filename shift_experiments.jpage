@@ -17,6 +17,8 @@ System.out.println(Integer.toBinaryString(-1));
 
 System.out.println(Integer.toBinaryString(Integer.parseInt("FFFF",16)));
 		
+Syntax error, insert ")" to complete ExpressionSystem.out.println(Long.toBinaryString(Long.MAX_VALUE));
+
 System.out.println(Integer.toBinaryString(132));
 System.out.println(Integer.valueOf("10000100000",2));
 System.out.println(Long.toBinaryString(42541956123769884636017138956568135816));
@@ -132,15 +134,26 @@ System.out.println(largestPossibleCidrBlock);
 System.out.println(lowerBound);
 System.out.println(upperBound);
 
+System.out.println(Long.toBinaryString(Long.MAX_VALUE+2));
+System.out.println(Long.toBinaryString(9223372036854775807l+1));
+System.out.println(Long.toBinaryString(2306204062558715904l));
+
 
 System.out.println(Math.log(2147483648l)/Math.log(2));
 
-System.out.println( Long.toBinaryString(~(-1 << 1) << 4 ));
+System.out.println( Long.toBinaryString(~(-1l << 63)));
 
-
-int cidr=0;System.out.println( Long.toBinaryString((-1 << cidr)));
-System.out.println( Long.toBinaryString((~(-1 << cidr))));
+System.out.println(Long.toBinaryString((Long.parseUnsignedLong("9223372036854775807"))));
+System.out.println(Long.toBinaryString((Long.parseLong("-1"))));
+int cidr=63;cidr cannot be resolved to a variablecidr cannot be resolved to a variableSystem.out.println( Long.toBinaryString((-1l << cidr)));
+System.out.println( Long.toBinaryString((~(-1l << cidr))));
 System.out.println("---------------------------------------------------------------------------");
+
+System.out.println( Long.toBinaryString( (~(-1l << 0 ))   ));
+
+
+cidrSuffix cannot be resolved to a variableSystem.out.println( Long.toBinaryString( (-1l << 64)   ));
+
 
 
 System.out.println( Long.toBinaryString(2229672392l));

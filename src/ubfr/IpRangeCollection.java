@@ -27,8 +27,7 @@ public class IpRangeCollection {
 		ipRangeCollection.sort(new Comparator<IpRange>() {
 			@Override
 			public int compare(IpRange o1, IpRange o2) {
-				int result = (o1.lowerLimit.isLesser(o2.lowerLimit)) ? -1 : 1;
-				return result;
+				return o1.getLowerLimit().compareTo(o2.lowerLimit);
 			}
 		});
 
@@ -63,7 +62,7 @@ public class IpRangeCollection {
 		return result;
 	}
 
-	public List<String> toCidr() {
+	public List<String> toCidrStrings() {
 		List<String> cidr = new LinkedList<String>();
 
 		for (IpRange ipRange : ipRangeCollection) {
@@ -71,5 +70,13 @@ public class IpRangeCollection {
 		}
 		return cidr;
 	}
-
+	
+	public List<String> toRangeStrings() {
+		List<String> ranges = new LinkedList<String>();
+		
+		for (IpRange ipRange : ipRangeCollection) {
+			ranges.add(ipRange.lowerLimit.toString() + "-" + ipRange.upperLimit.toString());
+		}
+		return ranges;
+	}
 }

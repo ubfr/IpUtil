@@ -2,7 +2,7 @@ package ubfr;
 
 import ubfr.Exception.InvalidIpAddressException;
 
-public class IpAddress {
+public class IpAddress implements Comparable<IpAddress>{
 	
 	protected short max_cidr_suffix;
 	
@@ -100,6 +100,11 @@ public class IpAddress {
 	
 	public short parseCidrSuffix(String s) {
 		return parseCidrSuffix(s);
+	}
+
+	@Override
+	public int compareTo(IpAddress o) {
+		return this.compareTo(o);
 	}
 }
 

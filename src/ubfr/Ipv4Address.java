@@ -59,7 +59,6 @@ public class Ipv4Address extends IpAddress {
 		return this.bits;
 	};
 
-	@Override
 	public boolean isGreater(IpAddress ipAddr) {
 		return this.longValue() > ((Ipv4Address) ipAddr).longValue();
 	}
@@ -93,13 +92,13 @@ public class Ipv4Address extends IpAddress {
 	}
 
 	public IpAddress getUpperLimit(int cidrSuffix) {
-		long lowBlockUpper = (bits | (~(-1 << MAX_CIDR_SUFFIX - cidrSuffix)));
+		long lowBlockUpper = (bits | (~(-1l << MAX_CIDR_SUFFIX - cidrSuffix)));
 
 		return new Ipv4Address(lowBlockUpper);
 	}
 
 	public IpAddress getLowerLimit(int cidrSuffix) {
-		long lowBlockLower = (bits & (-1 << MAX_CIDR_SUFFIX - cidrSuffix));
+		long lowBlockLower = (bits & (-1l << MAX_CIDR_SUFFIX - cidrSuffix));
 
 		return new Ipv4Address(lowBlockLower);
 	}
@@ -110,5 +109,11 @@ public class Ipv4Address extends IpAddress {
 			throw new NumberFormatException();
 		}
 		return cidrSuffix;
+	}
+	
+	@Override
+	public int compareTo(IpAddress o) {
+		Ipv4Address ipv4Addr = (Ipv4Address) o;
+		return Long.signum(bits - ipv4Addr.bits);
 	}
 }
