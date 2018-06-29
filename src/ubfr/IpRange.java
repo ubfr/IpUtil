@@ -306,7 +306,7 @@ public class IpRange {
 
 		for (IpRange cidrRange : cidrRanges.values()) {
 			try {
-				result.add(cidrRange.getLowerLimit().toString() + "/" + (cidrRange.cidrSuffix + 1));
+				result.add(cidrRange.getLowerLimit().toString() + "/" + (cidrRange.cidrSuffix+1));
 			} catch (InvalidIpAddressException e) {
 
 			}
@@ -316,7 +316,7 @@ public class IpRange {
 	}
 
 	private static Map<IpAddress, IpRange> getCidr(IpAddress lowerAddr, IpAddress upperAddr) {
-		return getCidr(112, lowerAddr, upperAddr, new TreeMap<IpAddress, IpRange>());
+		return getCidr(0, lowerAddr, upperAddr, new TreeMap<IpAddress, IpRange>());
 	}
 
 	private static Map<IpAddress, IpRange> getCidr(int n, IpAddress lower, IpAddress upper,
@@ -324,16 +324,15 @@ public class IpRange {
 		if (lower.isGreater(upper)) {
 			return allRanges;
 		}
+		
+		IpAddress highBlockLower = (upper.getLowerLimit(n));
+		IpAddress highBlockUpper = (highBlockLower.getUpperLimit(n+1));
+		
+		IpAddress midBlockUpper = (lower.getUpperLimit(n));
+		IpAddress midBlockLower = (midBlockUpper.getLowerLimit(n+1));
 
-		IpAddress xhighBlockUpper = (upper.getUpperLimit(n));
-		IpAddress xhighBlockLower = (xhighBlockUpper.getLowerLimit(n + 1));
-		IpAddress xlowBlockLower = (upper.getLowerLimit(n));
-		IpAddress xlowBlockUpper = (xlowBlockLower.getUpperLimit(n + 1));
-
-		IpAddress highBlockUpper = (lower.getUpperLimit(n));
-		IpAddress highBlockLower = (highBlockUpper.getLowerLimit(n + 1));
 		IpAddress lowBlockLower = (lower.getLowerLimit(n));
-		IpAddress lowBlockUpper = (lowBlockLower.getUpperLimit(n + 1));
+		IpAddress lowBlockUpper = (lowBlockLower.getUpperLimit(n+1));
 
 		IpAddress resultUpperLimit = null;
 		IpAddress resultLowerLimit = null;
@@ -342,6 +341,11 @@ public class IpRange {
 			resultUpperLimit = highBlockUpper;
 		}
 
+		if (upper.isGreaterEqual(midBlockUpper) && midBlockLower.isGreaterEqual(lower)) {
+			resultLowerLimit = midBlockLower;
+			resultUpperLimit = midBlockUpper;
+		}
+		
 		if (upper.isGreaterEqual(lowBlockUpper) && lowBlockLower.isGreaterEqual(lower)) {
 			resultLowerLimit = lowBlockLower;
 			resultUpperLimit = lowBlockUpper;
