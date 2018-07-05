@@ -72,38 +72,6 @@ public class IpRangeTest {
 	}
 
 	@Test
-	public void testGetRange() throws Exception {
-
-		String[] tests = { "132.230.25.*			132.230.25.0 	132.230.25.255",
-				"132.230.25.* 			132.230.25.0 	132.230.25.255",
-				"132.230.25.10-15		132.230.25.10 	132.230.25.15",
-				"132.230.*				132.230.0.0 	132.230.255.255",
-				"132.230.*.*			132.230.0.0 	132.230.255.255",
-				"132.230.23-55.*		132.230.23.0 	132.230.55.255",
-				"132.230.23.10-43		132.230.23.10 	132.230.23.43" };
-
-		for (String test : tests) {
-			assertEquals(
-					new IpRange(IpAddress.parseIpAddress(test.split("\\s+")[1]),
-							IpAddress.parseIpAddress(test.split("\\s+")[2])).getString(),
-					IpRange.getRange(test.split("\\s+")[0]).getString());
-		}
-
-		assertTrue(EqualsBuilder.reflectionEquals(IpAddress.parseIpAddress("132.230.25.0"),
-				IpRange.getRange("132.230.25.*").lowerLimit));
-
-		assertThrows(InvalidBlockException.class, () -> {
-			IpRange.getRange("132.230.23-55");
-		});
-		assertThrows(InvalidBlockException.class, () -> {
-			IpRange.getRange("132.230.*.10-43");
-		});
-		assertThrows(InvalidBlockException.class, () -> {
-			IpRange.getRange("132.230.*.");
-		});
-	}
-
-	@Test
 	public void testGetUpperLimit() throws Exception {
 		assertTrue(EqualsBuilder.reflectionEquals(IpAddress.parseIpAddress("132.230.0.34"),
 				IpRange.parseIpRange("132.230.0.34").getUpperLimit()));
@@ -120,13 +88,62 @@ public class IpRangeTest {
 
 	@Test
 	public void testParseIpRange() throws Exception {
+		
+		assertTrue(EqualsBuilder.reflectionEquals(IpAddress.parseIpAddress("2001:4860:4860:::::88ff"),
+				IpRange.parseIpRange("2001:4860:4860:0:0:0:0:88ff/128").getUpperLimit()));
+		
 		assertTrue(EqualsBuilder.reflectionEquals(IpAddress.parseIpAddress("2001:4860:4860:0:0:0:0:88ff"),
 				IpRange.parseIpRange("2001:4860:4860:0:0:0:0:88ff/128").getUpperLimit()));
-
-		assertThrows(InvalidRangeException.class, () -> {
+		
+		assertEquals(
+				"4001:4860:4860:0000:0000:0000:0001:88fe-4001:4860:4860:0000:0000:0000:0001:88ff",
+				IpRange.parseIpRange("4001:4860:4860:0:0:0:1:88fe-4001:4860:4860:0:0:0:1:88ff").toRangeString());
+		
+		assertThrows(NumberFormatException.class, () -> {
 			IpRange.parseIpRange("4001:4860:4860:0:0:0:0:*");
 		});
+		assertThrows(NumberFormatException.class, () -> {
+			IpRange.parseIpRange("4001:4860:4860:0:0:0:1:88fe-88ff");
+		});
+		
+		assertEquals(
+				new IpRange(IpAddress.parseIpAddress("4001:4860:4860:0:0:0:1:88fe"),
+						IpAddress.parseIpAddress("4001:4860:4860:0:0:0:1:88fe")).toRangeString(),
+				IpRange.parseIpRange("4001:4860:4860:0:0:0:1:88fe").toRangeString());
 
+		assertEquals(
+				"4001:4860:4860:0000:0000:0000:0001:88fe-4001:4860:4860:0000:0000:0000:0001:88fe",
+				IpRange.parseIpRange("4001:4860:4860:0:0:0:1:88fe").toRangeString());
+
+		
+		String[] tests = { "132.230.25.*			132.230.25.0 	132.230.25.255",
+				"132.230.25.* 			132.230.25.0 	132.230.25.255",
+				"132.230.25.10-15		132.230.25.10 	132.230.25.15",
+				"132.230.*				132.230.0.0 	132.230.255.255",
+				"132.230.*.*			132.230.0.0 	132.230.255.255",
+				"132.230.23-55.*		132.230.23.0 	132.230.55.255",
+				"132.230.23.10-43		132.230.23.10 	132.230.23.43", };
+
+		for (String test : tests) {
+			assertEquals(
+					new IpRange(IpAddress.parseIpAddress(test.split("\\s+")[1]),
+							IpAddress.parseIpAddress(test.split("\\s+")[2])).toRangeString(),
+					IpRange.parseIpRange(test.split("\\s+")[0]).toRangeString());
+		}
+
+		assertTrue(EqualsBuilder.reflectionEquals(IpAddress.parseIpAddress("132.230.25.0"),
+				IpRange.parseIpRange("132.230.25.*").lowerLimit));
+
+		assertThrows(InvalidRangeException.class, () -> {
+			IpRange.parseIpRange("132.230.23-55");
+		});
+		assertThrows(NumberFormatException.class, () -> {
+			IpRange.parseIpRange("132.230.*.10-43");
+		});
+		assertThrows(InvalidRangeException.class, () -> {
+			IpRange.parseIpRange("132.230.*.");
+		});
+	
 	}
 
 	@Test
@@ -143,6 +160,10 @@ public class IpRangeTest {
 		assertArrayEquals(new String[] { "63.0.0.0/8", "64.0.0.0/2", "128.0.0.0/1" },
 				(IpRange.parseIpRange("63.0.0.0-255.255.255.255")).toCidr().toArray());
 
+		assertArrayEquals(
+				new String[] { "4001:4860:4860:0000:0000:0000:0000:68fe/128"}, 
+				IpRange.parseIpRange("4001:4860:4860:0:0:0:0:68fe").toCidr().toArray());
+		
 		assertArrayEquals(
 				new String[] { "4001:4860:4860:0000:0000:0000:0000:68fe/127",
 						"4001:4860:4860:0000:0000:0000:0000:6900/120", "4001:4860:4860:0000:0000:0000:0000:6a00/119",
@@ -250,37 +271,37 @@ public class IpRangeTest {
 		}
 
 		assertThrows(NumberFormatException.class, () -> {
-			IpRange.parseIpRange("132.230.25.0/aa").getString();
+			IpRange.parseIpRange("132.230.25.0/aa").toRangeString();
 		});
 
 		assertThrows(NumberFormatException.class, () -> {
-			IpRange.parseIpRange("132.230.25.0/66").getString();
+			IpRange.parseIpRange("132.230.25.0/66").toRangeString();
 		});
 
 		assertThrows(NumberFormatException.class, () -> {
-			IpRange.parseIpRange("132.230.25.*/66").getString();
+			IpRange.parseIpRange("132.230.25.*/66").toRangeString();
 		});
 
 		assertThrows(NumberFormatException.class, () -> {
-			IpRange.parseIpRange("132.230.25.2/*").getString();
+			IpRange.parseIpRange("132.230.25.2/*").toRangeString();
 		});
 	}
 
 	@Test
 	public void testToString() throws Exception {
-		assertEquals("132.230.0.0-132.230.0.255", (IpRange.parseIpRange("132.230.0.*")).getString());
-		assertEquals("132.230.0.0-132.230.255.255", (IpRange.parseIpRange("132.230.*")).getString());
-		assertEquals("132.230.10.10-132.230.10.10", (IpRange.parseIpRange("132.230.10.10")).getString());
-		assertEquals("132.230.10.17-132.230.10.210", (IpRange.parseIpRange("132.230.10.17-210")).getString());
+		assertEquals("132.230.0.0-132.230.0.255", (IpRange.parseIpRange("132.230.0.*")).toRangeString());
+		assertEquals("132.230.0.0-132.230.255.255", (IpRange.parseIpRange("132.230.*")).toRangeString());
+		assertEquals("132.230.10.10-132.230.10.10", (IpRange.parseIpRange("132.230.10.10")).toRangeString());
+		assertEquals("132.230.10.17-132.230.10.210", (IpRange.parseIpRange("132.230.10.17-210")).toRangeString());
 		assertEquals("132.230.10.17-132.230.10.210",
-				(IpRange.parseIpRange("132.230.10.17-132.230.10.210")).getString());
-		assertEquals("132.230.10.0-132.230.12.255", (IpRange.parseIpRange("132.230.10-12.*")).getString());
+				(IpRange.parseIpRange("132.230.10.17-132.230.10.210")).toRangeString());
+		assertEquals("132.230.10.0-132.230.12.255", (IpRange.parseIpRange("132.230.10-12.*")).toRangeString());
 
 		assertThrows(InvalidRangeException.class, () -> {
-			IpRange.parseIpRange("132.230.10.17-132.230.10.10").getString();
+			IpRange.parseIpRange("132.230.10.17-132.230.10.10").toRangeString();
 		});
 		assertThrows(NumberFormatException.class, () -> {
-			IpRange.parseIpRange("132.230.10.117-21").getString();
+			IpRange.parseIpRange("132.230.10.117-21").toRangeString();
 		});
 	}
 

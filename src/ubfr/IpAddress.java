@@ -101,7 +101,11 @@ public class IpAddress implements Comparable<IpAddress>{
 	public short parseCidrSuffix(String s) {
 		return parseCidrSuffix(s);
 	}
-
+	
+	public String toHexString() {
+		return this.toHexString();
+	}
+	
 	@Override
 	public int compareTo(IpAddress o) {
 		return this.compareTo(o);

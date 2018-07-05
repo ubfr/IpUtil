@@ -13,10 +13,10 @@ import ubfr.Exception.InvalidRangeException;
 
 public class IpRange {
 
-	public IpAddress upperLimit;
-	public IpAddress lowerLimit;
-	public Integer cidrSuffix = null;
-	public String rangeString;
+	protected IpAddress upperLimit;
+	protected IpAddress lowerLimit;
+	protected Integer cidrSuffix = null;
+	protected String inputString = "";
 
 	public IpRange(IpAddress lowerLimit, IpAddress upperLimit) {
 		if (lowerLimit.isGreater(upperLimit)) {
@@ -26,14 +26,14 @@ public class IpRange {
 		this.lowerLimit = lowerLimit;
 		this.upperLimit = upperLimit;
 	}
+	
+	public IpRange(IpAddress lowerLimit, IpAddress upperLimit, String input) {
+		this(lowerLimit, upperLimit);
+		inputString = input;
+	}		
 
 	public IpRange(IpAddress lowerLimit, IpAddress upperLimit, int cidrSuffix) {
-		if (lowerLimit.isGreater(upperLimit)) {
-			throw new InvalidRangeException();
-		}
-
-		this.lowerLimit = lowerLimit;
-		this.upperLimit = upperLimit;
+		this(lowerLimit, upperLimit);
 		this.cidrSuffix = cidrSuffix;
 	}
 
@@ -46,7 +46,7 @@ public class IpRange {
 		if (parts.length == 2) {
 			IpAddress ipAddr = IpAddress.parseIpAddress(parts[0]);
 			short cidrSuffix = ipAddr.parseCidrSuffix(parts[1]);
-			return new IpRange(ipAddr.getLowerLimit(cidrSuffix), ipAddr.getUpperLimit(cidrSuffix));
+			return new IpRange(ipAddr.getLowerLimit(cidrSuffix), ipAddr.getUpperLimit(cidrSuffix), s);
 		}
 
 		// handle formats like: 132.230.250.234 - 132.230.250.255
@@ -55,7 +55,7 @@ public class IpRange {
 			try {
 				IpAddress lowerLimit = IpAddress.parseIpAddress(limits[0]);
 				IpAddress upperLimit = IpAddress.parseIpAddress(limits[1]);
-				return new IpRange(lowerLimit, upperLimit);
+				return new IpRange(lowerLimit, upperLimit, s);
 			} catch (InvalidIpAddressException e) {
 				// TODO Auto-generated catch block
 				// e.printStackTrace();
@@ -70,9 +70,9 @@ public class IpRange {
 		}
 	}
 
-	public static String[] getBlocks(String ipAddr) throws InvalidBlockException, InvalidRangeException {
+	protected static String[] getBlocks(String ipAddr) throws InvalidBlockException, InvalidRangeException {
 		String[] blocks = ipAddr.split("\\.");
-
+ 
 		String blockA = "";
 		String blockB = "";
 		String blockC = "";
@@ -158,20 +158,17 @@ public class IpRange {
 		return new String[] { blockA, blockB, blockC, blockD };
 	}
 
-	public static IpRange getRange(String s) throws InvalidBlockException, InvalidRangeException {
+	protected static IpRange getRange(String s) throws InvalidBlockException, InvalidRangeException {
 
+		if (s.contains(":")) {
+			IpAddress ipAddr = IpAddress.parseIpAddress(s);
+			return new IpRange(ipAddr, ipAddr, s);
+		}
+		
 		String[] blocks = getBlocks(s);
-
 		short blockA = Short.parseShort(blocks[0]);
-		if (blockA < 0 || 255 < blockA) {
-			throw new NumberFormatException();
-		}
-
 		short blockB = Short.parseShort(blocks[1]);
-		if (blockB < 0 || 255 < blockB) {
-			throw new NumberFormatException();
-		}
-
+		
 		// allowed formats for blockC:
 		// * number between 0 and 255,
 		// Examples: 213, 234, 1, 99
@@ -276,13 +273,13 @@ public class IpRange {
 		try {
 			IpAddress lower = IpAddress.parseIpAddress(start);
 			IpAddress upper = IpAddress.parseIpAddress(end);
-			return new IpRange(lower, upper);
+			return new IpRange(lower, upper, s);
 		} catch (InvalidIpAddressException e) {
 			throw new InvalidRangeException();
 		}
 	}
 
-	public String getString() throws InvalidIpAddressException {
+	public String toRangeString() throws InvalidIpAddressException {
 		String lower = lowerLimit.toString();
 		String upper = upperLimit.toString();
 		String ipRange = lower + "-" + upper;
@@ -369,6 +366,10 @@ public class IpRange {
 	
 	public String toString() {
 		return lowerLimit.toString() +"-"+upperLimit.toString();
+	}
+	
+	public String toInputString() {
+		return inputString;
 	}
 	
 	public String getIpVersion() {

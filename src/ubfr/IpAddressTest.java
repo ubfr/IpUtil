@@ -14,6 +14,9 @@ public class IpAddressTest {
 	@Test
 	public void testParseIpAddress() throws Exception {
 
+		assertEquals("2001:4860:4860:0000:0000:0000:0000:8888",
+				IpAddress.parseIpAddress("2001:4860:4860:::::8888").toString());
+		
 		assertTrue(EqualsBuilder.reflectionEquals(IpAddress.parseIpAddress(2229672342l),
 				IpAddress.parseIpAddress("132.230.25.150")));
 
@@ -63,9 +66,6 @@ public class IpAddressTest {
 		assertEquals("2001:4860:4860:0000:0000:0000:0000:8888",
 				IpAddress.parseIpAddress("2001:4860:4860:0:0:0:0:8888").toString());
 
-//		assertEquals("2001:4860:4860:0000:0000:0000:0000:8888",
-//				IpAddress.parseIpAddress("2001:4860:4860:::::8888").toString());
-		
 		assertThrows(NumberFormatException.class, () -> {
 			IpAddress.parseIpAddress("2001:4860:4860:0:0:zzz:0:8888");
 		});
@@ -74,10 +74,9 @@ public class IpAddressTest {
 			IpAddress.parseIpAddress("2001:4860:4860:0:0:*:0:8888");
 		});
 
-//		assertThrows(NumberFormatException.class, () -> {
-//			IpAddress.parseIpAddress("2001:4860:4860:0:0:333333:0:8888");
-//		});
-		
+		assertThrows(NumberFormatException.class, () -> {
+			IpAddress.parseIpAddress("2001:4860:4860:0:0:333333:0:8888");
+		});
 	}
 
 	@Test
@@ -106,13 +105,13 @@ public class IpAddressTest {
 				IpAddress.parseIpAddress("2001:4860:4860:0000:0000:0000:0000:8888").getUpperLimit(64)));
 		assertTrue(EqualsBuilder.reflectionEquals(IpAddress.parseIpAddress("2001:4860:4860:0001:ffff:ffff:ffff:ffff:"),
 				IpAddress.parseIpAddress("2001:4860:4860:0000:0000:0000:0000:8888").getUpperLimit(63)));
-		
+
 		assertTrue(EqualsBuilder.reflectionEquals(IpAddress.parseIpAddress("2001:4860:4860:0:0:0:0:8888"),
 				IpAddress.parseIpAddress("2001:4860:4860:0000:0000:0000:0000:8888").getUpperLimit(128)));
 
 		assertTrue(EqualsBuilder.reflectionEquals(IpAddress.parseIpAddress("2001:4860:4860:0:0:0:0:8889"),
 				IpAddress.parseIpAddress("2001:4860:4860:0000:0000:0000:0000:8888").getUpperLimit(127)));
-		
+
 		assertTrue(EqualsBuilder.reflectionEquals(IpAddress.parseIpAddress("132.230.25.0"),
 				IpAddress.parseIpAddress("132.230.25.150").getLowerLimit(24)));
 		assertTrue(EqualsBuilder.reflectionEquals(IpAddress.parseIpAddress("132.230.25.128"),
@@ -123,12 +122,9 @@ public class IpAddressTest {
 
 		assertTrue(EqualsBuilder.reflectionEquals(IpAddress.parseIpAddress("2001:4860:4860:0:0:0:0:88ff"),
 				IpAddress.parseIpAddress("2001:4860:4860:0000:0000:0000:0000:8888").getUpperLimit(120)));
-		
+
 		assertTrue(EqualsBuilder.reflectionEquals(IpAddress.parseIpAddress("2001:4860:4860:0:0:0:0:88bf"),
 				IpAddress.parseIpAddress("2001:4860:4860:0000:0000:0000:0000:8888").getUpperLimit(122)));
-		
-		
-		
 
 	}
 
@@ -162,13 +158,13 @@ public class IpAddressTest {
 
 		assertEquals(-1, IpAddress.parseIpAddress("2001:4860:4860:0000:0000:0000:0000:8880")
 				.compareTo(IpAddress.parseIpAddress("2001:4860:4860:0000:0000:0000:0000:8888")));
-		
+
 		assertEquals(1, IpAddress.parseIpAddress("2001:4860:4860:0000:0000:0000:0000:8888")
 				.compareTo(IpAddress.parseIpAddress("2001:4860:4860:0000:0000:0000:0000:8880")));
 
 		assertEquals(-1, IpAddress.parseIpAddress("2000:4860:4860:0000:0000:0000:0000:8888")
 				.compareTo(IpAddress.parseIpAddress("2001:4860:4860:0000:0000:0000:0000:8888")));
-		
+
 		assertEquals(1, IpAddress.parseIpAddress("2001:4860:4860:0000:0000:0000:0000:8888")
 				.compareTo(IpAddress.parseIpAddress("2000:4860:4860:0000:0000:0000:0000:8888")));
 	}
@@ -177,10 +173,11 @@ public class IpAddressTest {
 	public void testNext() throws Exception {
 		assertTrue(EqualsBuilder.reflectionEquals(IpAddress.parseIpAddress("2001:4860:4860:0:0:0:0:8889"),
 				IpAddress.parseIpAddress("2001:4860:4860:0000:0000:0000:0000:8888").next()));
-		
-		// 2001:4860:4860:0001:7fff:ffff:ffff:ffff == 2306204062558715905l,9223372036854775807l
+
+		// 2001:4860:4860:0001:7fff:ffff:ffff:ffff ==
+		// 2306204062558715905l,9223372036854775807l
 		assertTrue(EqualsBuilder.reflectionEquals(IpAddress.parseIpAddress("2001:4860:4860:0001:8000:0000:0000:0000"),
-				new Ipv6Address(2306204062558715905l,9223372036854775807l).next()));
+				new Ipv6Address(2306204062558715905l, 9223372036854775807l).next()));
 
 		assertTrue(EqualsBuilder.reflectionEquals(IpAddress.parseIpAddress("2001:4860:4860:0002:0000:0000:0000:0000"),
 				IpAddress.parseIpAddress("2001:4860:4860:0001:ffff:ffff:ffff:ffff").next()));
@@ -190,9 +187,21 @@ public class IpAddressTest {
 	public void testPrev() throws Exception {
 		assertTrue(EqualsBuilder.reflectionEquals(IpAddress.parseIpAddress("2001:4860:4860:0:0:0:0:8887"),
 				IpAddress.parseIpAddress("2001:4860:4860:0000:0000:0000:0000:8888").prev()));
-		
+
 		assertTrue(EqualsBuilder.reflectionEquals(IpAddress.parseIpAddress("2001:4860:485f:ffff:ffff:ffff:ffff:ffff"),
 				IpAddress.parseIpAddress("2001:4860:4860:0000:0000:0000:0000:0000").prev()));
-		
+
+	}
+
+	@Test
+	public void testToHexString() throws Exception {
+		assertEquals("20014860486000000000000000008888",
+				IpAddress.parseIpAddress("2001:4860:4860:0000:0000:0000:0000:8888").toHexString());
+		assertEquals("84e61969",
+				IpAddress.parseIpAddress("132.230.25.105").toHexString());
+		assertEquals("01000000",
+				IpAddress.parseIpAddress("1.0.0.0").toHexString());
+		assertEquals("000a0002",
+				IpAddress.parseIpAddress("0.10.0.2").toHexString());
 	}
 }

@@ -22,7 +22,14 @@ public class Ipv6Address extends IpAddress {
 		long low = 0L;
 
 		for (int i = 0; i < 8; i++) {
-			long longValue = Long.parseLong(blocks[i], 16);
+			long longValue = 0l;
+			if (! blocks[i].isEmpty()) {
+				longValue = Long.parseLong(blocks[i], 16);
+			}
+			if (longValue < 0 || longValue > 65535) {
+				throw new NumberFormatException();
+			}
+			
 			if (0 <= i && i < 4) {
 				high |= (longValue << ((4 - i - 1) * 16));
 			} else {
@@ -58,6 +65,10 @@ public class Ipv6Address extends IpAddress {
 
 	public String toString() {
 		return String.join(":", toArrayOfZeroPaddedstrings());
+	}
+	
+	public String toHexString() {
+		return String.format("%016x", highBits) + String.format("%016x", lowBits);
 	}
 
 	public boolean isGreater(IpAddress ipAddr) {

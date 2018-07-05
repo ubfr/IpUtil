@@ -79,4 +79,13 @@ public class IpRangeCollection {
 		}
 		return ranges;
 	}
+	
+	public List<String> toInputStrings() {
+		List<String> ranges = new LinkedList<String>();
+		
+		for (IpRange ipRange : ipRangeCollection) {
+			ranges.add(ipRange.toInputString());
+		}
+		return ranges;
+	}
 }

@@ -55,6 +55,10 @@ public class Ipv4Address extends IpAddress {
 		return String.join(".", strings);
 	}
 
+	public String toHexString() {
+		return String.format("%08x", bits);
+	}
+	
 	public long longValue() {
 		return this.bits;
 	};
