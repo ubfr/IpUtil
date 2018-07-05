@@ -1,4 +1,4 @@
-package ubfr;
+package de.uni_freiburg.ub;
 
 import static org.junit.Assert.assertArrayEquals;
 

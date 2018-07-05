@@ -1,4 +1,4 @@
-package ubfr.Exception;
+package de.uni_freiburg.ub.Exception;
 
 public class InvalidFormatException extends Exception {
 

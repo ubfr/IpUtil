@@ -1,11 +1,11 @@
-package ubfr;
+package de.uni_freiburg.ub;
 
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
-import ubfr.Exception.InvalidIpAddressException;
-import ubfr.Exception.InvalidRangeException;
+import de.uni_freiburg.ub.Exception.InvalidIpAddressException;
+import de.uni_freiburg.ub.Exception.InvalidRangeException;
 
 public class IpRangeCollection {
 

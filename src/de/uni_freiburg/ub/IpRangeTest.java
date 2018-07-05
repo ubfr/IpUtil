@@ -1,4 +1,4 @@
-package ubfr;
+package de.uni_freiburg.ub;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -8,8 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.junit.jupiter.api.Test;
 
-import ubfr.Exception.InvalidBlockException;
-import ubfr.Exception.InvalidRangeException;
+import de.uni_freiburg.ub.Exception.InvalidBlockException;
+import de.uni_freiburg.ub.Exception.InvalidRangeException;
 
 public class IpRangeTest {
 

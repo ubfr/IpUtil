@@ -1,6 +1,6 @@
-package ubfr;
+package de.uni_freiburg.ub;
 
-import ubfr.Exception.InvalidIpAddressException;
+import de.uni_freiburg.ub.Exception.InvalidIpAddressException;
 
 public class IpAddress implements Comparable<IpAddress>{
 	

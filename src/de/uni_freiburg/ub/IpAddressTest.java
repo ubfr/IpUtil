@@ -1,4 +1,4 @@
-package ubfr;
+package de.uni_freiburg.ub;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.junit.jupiter.api.Test;
 
-import ubfr.Exception.InvalidIpAddressException;
+import de.uni_freiburg.ub.Exception.InvalidIpAddressException;
 
 public class IpAddressTest {
 
