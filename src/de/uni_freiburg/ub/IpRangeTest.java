@@ -6,9 +6,11 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
 import de.uni_freiburg.ub.Exception.InvalidBlockException;
+import de.uni_freiburg.ub.Exception.InvalidIpAddressException;
 import de.uni_freiburg.ub.Exception.InvalidRangeException;
 
 public class IpRangeTest {
@@ -27,32 +29,15 @@ public class IpRangeTest {
 
 	@Test
 	public void testGetBlocks() throws Exception {
-		assertThrows(InvalidBlockException.class, () -> {
-			IpRange.getBlocks("132.230.25.");
-		});
-		assertThrows(InvalidBlockException.class, () -> {
-			IpRange.getBlocks("132.230.25");
-		});
-		assertThrows(InvalidRangeException.class, () -> {
-			IpRange.getBlocks("132.230");
-		});
-		assertThrows(InvalidRangeException.class, () -> {
-			IpRange.getBlocks("132.230.");
-		});
 
-		assertThrows(NumberFormatException.class, () -> {
-			IpRange.getBlocks("132.*.25.*");
-		});
-		assertThrows(NumberFormatException.class, () -> {
-			IpRange.getBlocks("111.ss.25.*");
-		});
-		assertThrows(NumberFormatException.class, () -> {
-			IpRange.getBlocks("111.132.25.6-4");
-		});
-
-		assertThrows(InvalidRangeException.class, () -> {
-			IpRange.getBlocks("xyz");
-		});
+		assertInvalidBlockExceptionIsThrown("132.230.25.");
+		assertInvalidBlockExceptionIsThrown("132.230.25");
+		assertExceptionIsThrown("132.230", InvalidRangeException.class.getSimpleName());
+		assertExceptionIsThrown("132.230.", InvalidRangeException.class.getSimpleName());
+		assertExceptionIsThrown("132.*.25.*", NumberFormatException.class.getSimpleName());
+		assertExceptionIsThrown("111.ss.25.*", NumberFormatException.class.getSimpleName());
+		assertExceptionIsThrown("111.132.25.6-4", NumberFormatException.class.getSimpleName());
+		assertExceptionIsThrown("xyz", InvalidRangeException.class.getSimpleName());
 
 		assertArrayEquals(new String[] { "132", "230", "*", "*" }, IpRange.getBlocks("132.230.*"));
 		assertArrayEquals(new String[] { "132", "230", "*", "*" }, IpRange.getBlocks("132.230.*.*"));
@@ -88,34 +73,27 @@ public class IpRangeTest {
 
 	@Test
 	public void testParseIpRange() throws Exception {
-		
+
 		assertTrue(EqualsBuilder.reflectionEquals(IpAddress.parseIpAddress("2001:4860:4860:::::88ff"),
 				IpRange.parseIpRange("2001:4860:4860:0:0:0:0:88ff/128").getUpperLimit()));
-		
+
 		assertTrue(EqualsBuilder.reflectionEquals(IpAddress.parseIpAddress("2001:4860:4860:0:0:0:0:88ff"),
 				IpRange.parseIpRange("2001:4860:4860:0:0:0:0:88ff/128").getUpperLimit()));
-		
-		assertEquals(
-				"4001:4860:4860:0000:0000:0000:0001:88fe-4001:4860:4860:0000:0000:0000:0001:88ff",
+
+		assertEquals("4001:4860:4860:0000:0000:0000:0001:88fe-4001:4860:4860:0000:0000:0000:0001:88ff",
 				IpRange.parseIpRange("4001:4860:4860:0:0:0:1:88fe-4001:4860:4860:0:0:0:1:88ff").toRangeString());
-		
-		assertThrows(NumberFormatException.class, () -> {
-			IpRange.parseIpRange("4001:4860:4860:0:0:0:0:*");
-		});
-		assertThrows(NumberFormatException.class, () -> {
-			IpRange.parseIpRange("4001:4860:4860:0:0:0:1:88fe-88ff");
-		});
-		
+
+		assertNumberFormatExceptionIsThrown("4001:4860:4860:0:0:0:0:*");
+		assertNumberFormatExceptionIsThrown("4001:4860:4860:0:0:0:1:88fe-88ff");
+
 		assertEquals(
 				new IpRange(IpAddress.parseIpAddress("4001:4860:4860:0:0:0:1:88fe"),
 						IpAddress.parseIpAddress("4001:4860:4860:0:0:0:1:88fe")).toRangeString(),
 				IpRange.parseIpRange("4001:4860:4860:0:0:0:1:88fe").toRangeString());
 
-		assertEquals(
-				"4001:4860:4860:0000:0000:0000:0001:88fe-4001:4860:4860:0000:0000:0000:0001:88fe",
+		assertEquals("4001:4860:4860:0000:0000:0000:0001:88fe-4001:4860:4860:0000:0000:0000:0001:88fe",
 				IpRange.parseIpRange("4001:4860:4860:0:0:0:1:88fe").toRangeString());
 
-		
 		String[] tests = { "132.230.25.*			132.230.25.0 	132.230.25.255",
 				"132.230.25.* 			132.230.25.0 	132.230.25.255",
 				"132.230.25.10-15		132.230.25.10 	132.230.25.15",
@@ -134,16 +112,10 @@ public class IpRangeTest {
 		assertTrue(EqualsBuilder.reflectionEquals(IpAddress.parseIpAddress("132.230.25.0"),
 				IpRange.parseIpRange("132.230.25.*").lowerLimit));
 
-		assertThrows(InvalidRangeException.class, () -> {
-			IpRange.parseIpRange("132.230.23-55");
-		});
-		assertThrows(NumberFormatException.class, () -> {
-			IpRange.parseIpRange("132.230.*.10-43");
-		});
-		assertThrows(InvalidRangeException.class, () -> {
-			IpRange.parseIpRange("132.230.*.");
-		});
-	
+		assertInvalidRangeExceptionIsThrown("132.230.23-55");
+		assertNumberFormatExceptionIsThrown("132.230.*.10-43");
+		assertInvalidRangeExceptionIsThrown("132.230.*.");
+
 	}
 
 	@Test
@@ -160,10 +132,9 @@ public class IpRangeTest {
 		assertArrayEquals(new String[] { "63.0.0.0/8", "64.0.0.0/2", "128.0.0.0/1" },
 				(IpRange.parseIpRange("63.0.0.0-255.255.255.255")).toCidr().toArray());
 
-		assertArrayEquals(
-				new String[] { "4001:4860:4860:0000:0000:0000:0000:68fe/128"}, 
+		assertArrayEquals(new String[] { "4001:4860:4860:0000:0000:0000:0000:68fe/128" },
 				IpRange.parseIpRange("4001:4860:4860:0:0:0:0:68fe").toCidr().toArray());
-		
+
 		assertArrayEquals(
 				new String[] { "4001:4860:4860:0000:0000:0000:0000:68fe/127",
 						"4001:4860:4860:0000:0000:0000:0000:6900/120", "4001:4860:4860:0000:0000:0000:0000:6a00/119",
@@ -270,21 +241,10 @@ public class IpRangeTest {
 			assertArrayEquals(getCidr(test), (IpRange.parseIpRange(getRange(test))).toCidr().toArray());
 		}
 
-		assertThrows(NumberFormatException.class, () -> {
-			IpRange.parseIpRange("132.230.25.0/aa").toRangeString();
-		});
-
-		assertThrows(NumberFormatException.class, () -> {
-			IpRange.parseIpRange("132.230.25.0/66").toRangeString();
-		});
-
-		assertThrows(NumberFormatException.class, () -> {
-			IpRange.parseIpRange("132.230.25.*/66").toRangeString();
-		});
-
-		assertThrows(NumberFormatException.class, () -> {
-			IpRange.parseIpRange("132.230.25.2/*").toRangeString();
-		});
+		assertNumberFormatExceptionIsThrown("132.230.25.0/aa");
+		assertNumberFormatExceptionIsThrown("132.230.25.0/66");
+		assertNumberFormatExceptionIsThrown("132.230.25.*/66");
+		assertNumberFormatExceptionIsThrown("132.230.25.2/*");
 	}
 
 	@Test
@@ -297,12 +257,9 @@ public class IpRangeTest {
 				(IpRange.parseIpRange("132.230.10.17-132.230.10.210")).toRangeString());
 		assertEquals("132.230.10.0-132.230.12.255", (IpRange.parseIpRange("132.230.10-12.*")).toRangeString());
 
-		assertThrows(InvalidRangeException.class, () -> {
-			IpRange.parseIpRange("132.230.10.17-132.230.10.10").toRangeString();
-		});
-		assertThrows(NumberFormatException.class, () -> {
-			IpRange.parseIpRange("132.230.10.117-21").toRangeString();
-		});
+		assertInvalidRangeExceptionIsThrown("132.230.10.17-132.230.10.10");
+
+		assertNumberFormatExceptionIsThrown("132.230.10.117-21");
 	}
 
 	@Test
@@ -310,4 +267,58 @@ public class IpRangeTest {
 		assertEquals("v4", (IpRange.parseIpRange("132.230.0.*").getIpVersion()));
 		assertEquals("v6", (IpRange.parseIpRange("2001:4860:4860:0:0:0:0:88ff/2").getIpVersion()));
 	}
+
+//	workaround for the following method to work with junit4
+//	assertThrows(InvalidBlockException.class, () -> {
+//		IpRange.getBlocks("132.230.25.");
+//	});
+	private void assertInvalidBlockExceptionIsThrown(String ip) {
+		try {
+			IpRange.getBlocks(ip);
+			Assert.fail("InvalidBlockException should be thrown");
+		} catch (InvalidBlockException e) {
+		}
+	}
+
+//	workaround for the following method to work with junit4
+//	assertThrows(NumberFormatException.class, () -> {
+//		IpRange.parseIpRange("132.230.25.0/aa").toRangeString();
+//	});
+	private void assertNumberFormatExceptionIsThrown(String ip) {
+		try {
+			IpRange.parseIpRange(ip).toRangeString();
+			Assert.fail("NumberFormatException should be thrown");
+		} catch (NumberFormatException e) {
+		}
+	}
+
+//	workaround for the following method to work with junit4
+//	assertThrows(InvalidRangeException.class, () -> {
+//		IpRange.parseIpRange("132.230.10.17-132.230.10.10").toRangeString();
+//	});
+	private void assertInvalidRangeExceptionIsThrown(String ip) {
+		try {
+			IpRange.parseIpRange(ip).toRangeString();
+			Assert.fail("InvalidRangeException should be thrown");
+		} catch (InvalidRangeException e) {
+		}
+	}
+
+//	workaround for the following method to work with junit4
+//	assertThrows(InvalidBlockException.class, () -> {
+//		IpRange.getBlocks("132.230.25.");
+//	});
+	private void assertExceptionIsThrown(String ip, String exceptionClassName) {
+		try {
+			IpRange.getBlocks(ip);
+			Assert.fail(exceptionClassName + " should be thrown");
+		} catch (Exception e) {
+			if (!e.getClass().getSimpleName().equals(exceptionClassName)) {
+				Assert.fail(exceptionClassName + " should be thrown");
+			}
+
+		}
+
+	}
+
 }

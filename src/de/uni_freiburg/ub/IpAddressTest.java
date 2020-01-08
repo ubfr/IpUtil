@@ -2,9 +2,9 @@ package de.uni_freiburg.ub;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
 import de.uni_freiburg.ub.Exception.InvalidIpAddressException;
@@ -16,7 +16,7 @@ public class IpAddressTest {
 
 		assertEquals("2001:4860:4860:0000:0000:0000:0000:8888",
 				IpAddress.parseIpAddress("2001:4860:4860:::::8888").toString());
-		
+
 		assertTrue(EqualsBuilder.reflectionEquals(IpAddress.parseIpAddress(2229672342l),
 				IpAddress.parseIpAddress("132.230.25.150")));
 
@@ -26,27 +26,16 @@ public class IpAddressTest {
 		assertEquals(3232236042l, ((Ipv4Address) IpAddress.parseIpAddress("192.168.002.10")).longValue());
 		assertEquals(4294967295l, ((Ipv4Address) IpAddress.parseIpAddress("255.255.255.255")).longValue());
 
-		assertThrows(NumberFormatException.class, () -> {
-			IpAddress.parseIpAddress("192.168.2.510");
-		});
-		assertThrows(NumberFormatException.class, () -> {
-			IpAddress.parseIpAddress("192.168.2.a");
-		});
-		assertThrows(NumberFormatException.class, () -> {
-			IpAddress.parseIpAddress("192..2.510");
-		});
-		assertThrows(InvalidIpAddressException.class, () -> {
-			IpAddress.parseIpAddress("132.230.2.510.10");
-		});
-		assertThrows(InvalidIpAddressException.class, () -> {
-			IpAddress.parseIpAddress("132.230..510.10");
-		});
-		assertThrows(InvalidIpAddressException.class, () -> {
-			IpAddress.parseIpAddress("132.230");
-		});
-		assertThrows(NumberFormatException.class, () -> {
-			IpAddress.parseIpAddress("132.230.*.30");
-		});
+		assertNumberFormatExceptionIsThrown("192.168.2.510");
+		assertNumberFormatExceptionIsThrown("192.168.2.a");
+		assertNumberFormatExceptionIsThrown("192..2.510");
+
+		assertInvalidIpAddressExceptionIsThrown("132.230.2.510.10");
+		assertInvalidIpAddressExceptionIsThrown("132.230..510.10");
+		assertInvalidIpAddressExceptionIsThrown("132.230");
+
+		assertNumberFormatExceptionIsThrown("132.230.*.30");
+		assertNumberFormatExceptionIsThrown("132.230.*.30");
 
 		// IPv6 Tests
 		assertEquals("2001:4860:4860:0000:0000:0000:0000:8888",
@@ -66,17 +55,9 @@ public class IpAddressTest {
 		assertEquals("2001:4860:4860:0000:0000:0000:0000:8888",
 				IpAddress.parseIpAddress("2001:4860:4860:0:0:0:0:8888").toString());
 
-		assertThrows(NumberFormatException.class, () -> {
-			IpAddress.parseIpAddress("2001:4860:4860:0:0:zzz:0:8888");
-		});
-
-		assertThrows(NumberFormatException.class, () -> {
-			IpAddress.parseIpAddress("2001:4860:4860:0:0:*:0:8888");
-		});
-
-		assertThrows(NumberFormatException.class, () -> {
-			IpAddress.parseIpAddress("2001:4860:4860:0:0:333333:0:8888");
-		});
+		assertNumberFormatExceptionIsThrown("2001:4860:4860:0:0:zzz:0:8888");
+		assertNumberFormatExceptionIsThrown("2001:4860:4860:0:0:*:0:8888");
+		assertNumberFormatExceptionIsThrown("2001:4860:4860:0:0:333333:0:8888");
 	}
 
 	@Test
@@ -86,14 +67,8 @@ public class IpAddressTest {
 		assertEquals("132.230.25.150", new Ipv4Address(2229672342l).toString());
 		assertEquals("255.255.255.255", new Ipv4Address(4294967295l).toString());
 
-		assertThrows(InvalidIpAddressException.class, () -> {
-			new Ipv4Address(4294967296l).toString();
-		});
-
-		assertThrows(InvalidIpAddressException.class, () -> {
-			new Ipv4Address(-10l).toString();
-		});
-
+		assertInvalidIpAddressExceptionIsThrown(4294967296l);
+		assertInvalidIpAddressExceptionIsThrown(-10l);
 	}
 
 	@Test
@@ -197,11 +172,45 @@ public class IpAddressTest {
 	public void testToHexString() throws Exception {
 		assertEquals("20014860486000000000000000008888",
 				IpAddress.parseIpAddress("2001:4860:4860:0000:0000:0000:0000:8888").toHexString());
-		assertEquals("84e61969",
-				IpAddress.parseIpAddress("132.230.25.105").toHexString());
-		assertEquals("01000000",
-				IpAddress.parseIpAddress("1.0.0.0").toHexString());
-		assertEquals("000a0002",
-				IpAddress.parseIpAddress("0.10.0.2").toHexString());
+		assertEquals("84e61969", IpAddress.parseIpAddress("132.230.25.105").toHexString());
+		assertEquals("01000000", IpAddress.parseIpAddress("1.0.0.0").toHexString());
+		assertEquals("000a0002", IpAddress.parseIpAddress("0.10.0.2").toHexString());
 	}
+
+//	workaround for the following method to work with junit4
+//	assertThrows(NumberFormatException.class, () -> {
+//		IpAddress.parseIpAddress("192.168.2.510");
+//	});
+	private void assertNumberFormatExceptionIsThrown(String ip) {
+		try {
+			IpAddress.parseIpAddress(ip);
+			Assert.fail("NumberFormatException should be thrown");
+		} catch (NumberFormatException e) {
+		}
+	}
+
+//	workaround for the following method to work with junit4
+//	assertThrows(InvalidIpAddressException.class, () -> {
+//		IpAddress.parseIpAddress("132.230..510.10");
+//	});
+	private void assertInvalidIpAddressExceptionIsThrown(String ip) {
+		try {
+			IpAddress.parseIpAddress(ip);
+			Assert.fail("InvalidIpAddressException should be thrown");
+		} catch (InvalidIpAddressException e) {
+		}
+	}
+
+//	workaround for the following method to work with junit4
+//	assertThrows(InvalidIpAddressException.class, () -> {
+//		new Ipv4Address(-10l).toString();
+//	});
+	private void assertInvalidIpAddressExceptionIsThrown(long ip) {
+		try {
+			new Ipv4Address(ip).toString();
+			Assert.fail("InvalidIpAddressException should be thrown");
+		} catch (InvalidIpAddressException e) {
+		}
+	}
+
 }
