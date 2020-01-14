@@ -2,12 +2,14 @@ package de.uni_freiburg.ub;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.Assert.assertArrayEquals;
+//import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+//import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.junit.Assert;
-import org.junit.jupiter.api.Test;
+//import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import de.uni_freiburg.ub.Exception.InvalidBlockException;
 import de.uni_freiburg.ub.Exception.InvalidIpAddressException;

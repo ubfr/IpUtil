@@ -1,11 +1,13 @@
 package de.uni_freiburg.ub;
 
 import static org.junit.Assert.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.Assert.assertEquals;
+//import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.junit.Assert;
-import org.junit.jupiter.api.Test;
+//import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import de.uni_freiburg.ub.Exception.InvalidIpAddressException;
 
